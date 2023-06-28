@@ -1,22 +1,29 @@
 import { loadStripe } from "@stripe/stripe-js";
+require('dotenv').config()
 
-export async function checkout({lineItems}){
-	let stripePromise = null
+export async function checkout({ lineItems }) {
+  let stripePromise = null;
 
-	const getStripe = () => {
-		if(!stripePromise) {
-			stripePromise = loadStripe(process.env.NEXT_PUBLIC_API_KEY)
-		}
-		return stripePromise
-	}
+  console.log(process.env.STRIPE_PUBLIC_API_KEY)
 
-	const stripe = await getStripe()
+  const getStripe = () => {
+    if (!stripePromise) {
+      stripePromise = loadStripe(process.env.STRIPE_PUBLIC_API_KEY);
+    }
+    return stripePromise;
+  };
 
-	await stripe.redirectToCheckout({
-		mode: 'payment',
-		lineItems,
-		successUrl: `${window.location.origin}?session_id={CHECKOUT_SESSION_ID}`,
-		cancelUrl: window.location.origin
-	})
+  try {
+    const stripe = await getStripe();
 
+    await stripe.redirectToCheckout({
+      mode: 'payment',
+      lineItems,
+      successUrl: `${window.location.origin}?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: window.location.origin
+    });
+  } catch (error) {
+    console.error('An error occurred during checkout:', error);
+    // Handle the error accordingly
+  }
 }
